@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package com.github.anicolaspp.moogle.proto;
+
+service Moogle {
+    rpc Search(Query) returns (SearchResult);
+}
+
+message Query {
+    optional string query = 1;
+}
+
+message SearchResult {
+
+}
