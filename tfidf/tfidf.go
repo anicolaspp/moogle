@@ -12,6 +12,16 @@ import (
 
 type wordSet map[string]bool
 
+func (ws wordSet) add(w string) bool {
+	_, ok := ws[w]
+	if ok {
+		return false
+	}
+
+	ws[w] = true
+	return true
+}
+
 // Corspus represents the entire library and the corresponding transformations
 // we can apply to it.
 type Corpus struct {
@@ -43,7 +53,7 @@ func (c *Corpus) Add(d *Document) bool {
 
 	c.docs = append(c.docs, d)
 	for w := range d.words {
-		c.vocabolary[w] = true
+		c.vocabolary.add(w)
 	}
 
 	return true
