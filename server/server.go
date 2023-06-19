@@ -14,7 +14,7 @@ const (
 )
 
 type Moogle struct {
-	fileContents map[string]string
+	corpus *tfidf.Corpus
 }
 
 func (m *Moogle) Run() error {
@@ -23,17 +23,15 @@ func (m *Moogle) Run() error {
 		return err
 	}
 
-	m.fileContents = contents
-
-	corpus := tfidf.NewCorpus()
+	m.corpus = tfidf.NewCorpus()
 
 	for name, cont := range contents {
 		d := tfidf.NewDocument(name, cont)
-		corpus.Add(d)
+		m.corpus.Add(d)
 	}
 
-	corpus.TF()
-	corpus.IDF()
+	m.corpus.TF()
+	m.corpus.IDF()
 
 	// start serving RPC request here.
 
@@ -54,8 +52,8 @@ func (m *Moogle) addHandlers(s *http.ServeMux) {
 
 func (m *Moogle) listFilesHandler() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		for k, _ := range m.fileContents {
-			fmt.Fprintln(w, k)
+		for _, d := range m.corpus.Documents() {
+			fmt.Fprintln(w, d.String())
 		}
 	})
 }

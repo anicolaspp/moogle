@@ -78,6 +78,10 @@ func (c *Corpus) Words() []string {
 	return ws
 }
 
+func (c *Corpus) Documents() []*Document {
+	return c.docs
+}
+
 type Document struct {
 	name string // name of the document.
 
