@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/anicolaspp/moogle/content"
+	"github.com/anicolaspp/moogle/tfidf"
 )
 
 const (
@@ -23,6 +24,15 @@ func (m *Moogle) Run() error {
 	}
 
 	m.fileContents = contents
+
+	corpus := tfidf.NewCorpus()
+
+	for name, cont := range contents {
+		d := tfidf.NewDocument(name, cont)
+		corpus.Add(d)
+	}
+
+	corpus.TF()
 
 	// start serving RPC request here.
 
