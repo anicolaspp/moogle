@@ -133,7 +133,7 @@ func (c *Corpus) RankDocs(query VectorScore) []string {
 	return res
 }
 
-// cosineSimilarities returns how simular both vectors are.
+// cosineSimilarities returns how similar both vectors are.
 func (c *Corpus) cosineSimilarities(a, b VectorScore) float64 {
 	xscores := []float64{}
 	for _, scores := range a {
