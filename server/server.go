@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"sync"
 
 	"github.com/anicolaspp/moogle/content"
 	"github.com/anicolaspp/moogle/tfidf"
@@ -30,8 +31,22 @@ func (m *Moogle) Run() error {
 		m.corpus.Add(d)
 	}
 
-	m.corpus.TF()
-	m.corpus.IDF()
+	// Do the corpus calculations in parallel.
+	wg := sync.WaitGroup{}
+	wg.Add(2)
+
+	go func() {
+		m.corpus.TF()
+		wg.Done()
+	}()
+	go func() {
+		m.corpus.IDF()
+		wg.Done()
+	}()
+
+	// Wait for the corpus calculations.
+	fmt.Println("Loading documents index...")
+	wg.Wait()
 
 	// start serving RPC request here.
 
