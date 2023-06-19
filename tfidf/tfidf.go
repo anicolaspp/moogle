@@ -133,13 +133,14 @@ func (d *Document) String() string {
 
 // words extracts all the words of the given document.
 func words(document string) []string {
+	symbols := "!\"#$%&()*+-./:;<=>?@[]^_`{|}~\n"
+
 	pieces := strings.ToLower(document)
-	pieces = strings.ReplaceAll(pieces, ".", " ")
-	pieces = strings.ReplaceAll(pieces, ",", " ")
-	pieces = strings.ReplaceAll(pieces, "?", " ")
-	pieces = strings.ReplaceAll(pieces, "!", " ")
+	for s := range symbols {
+		pieces = strings.ReplaceAll(pieces, string(rune(s)), " ")
+	}
 
-	w := strings.Split(pieces, " ")
+	pieces = strings.ReplaceAll(pieces, "'", " ")
 
-	return w
+	return strings.Split(pieces, " ")
 }
