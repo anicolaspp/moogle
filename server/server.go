@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"sync"
 
 	"github.com/anicolaspp/moogle/content"
 	"github.com/anicolaspp/moogle/tfidf"
@@ -26,27 +25,19 @@ func (m *Moogle) Run() error {
 
 	m.corpus = tfidf.NewCorpus()
 
+	docs := []*tfidf.Document{}
 	for name, cont := range contents {
-		d := tfidf.NewDocument(name, cont)
-		m.corpus.Add(d)
+		docs = append(docs, tfidf.NewDocument(name, cont))
 	}
 
-	// Do the corpus calculations in parallel.
-	wg := sync.WaitGroup{}
-	wg.Add(2)
+	m.corpus.FitTransform(docs)
 
-	go func() {
-		m.corpus.TF()
-		wg.Done()
-	}()
-	go func() {
-		m.corpus.IDF()
-		wg.Done()
-	}()
-
-	// Wait for the corpus calculations.
-	fmt.Println("Loading documents index...")
-	wg.Wait()
+	// scores := m.corpus.AsVector()
+	// for _, s := range scores {
+	// 	if s.Score > 0 {
+	// 		fmt.Println(s)
+	// 	}
+	// }
 
 	// start serving request here.
 	server := http.NewServeMux()

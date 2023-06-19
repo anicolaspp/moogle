@@ -12,8 +12,12 @@ type Corpus struct {
 
 	vocabolary map[string]bool
 
-	tf  map[string]map[*Document]float64
+	// Term Frequency of each word on each document.
+	tf map[string]map[*Document]float64
+	// Inverse Document Frequency. Proportion of documents containing each word.
 	idf map[string]float64
+	// TF_IDF scores of each word on each document.
+	tfidf map[string]map[*Document]float64
 }
 
 func NewCorpus() *Corpus {
@@ -21,6 +25,28 @@ func NewCorpus() *Corpus {
 		docs:       []*Document{},
 		vocabolary: map[string]bool{},
 	}
+}
+
+// FitTransform learns the vocabulary and transforms the corpus into tfidf
+// scores.
+func (c *Corpus) FitTransform(docs []*Document) {
+	for _, d := range docs {
+		c.Add(d)
+	}
+
+	c.TF()
+	c.IDF()
+
+	tfidf := map[string]map[*Document]float64{}
+
+	for w := range c.vocabolary {
+		for _, d := range docs {
+			tfidf[w] = map[*Document]float64{}
+			tfidf[w][d] = c.tf[w][d] * c.idf[w]
+		}
+	}
+
+	c.tfidf = tfidf
 }
 
 func (c *Corpus) Add(d *Document) {
@@ -35,10 +61,7 @@ func (c *Corpus) TF() map[string]map[*Document]float64 {
 	for _, d := range c.docs {
 		for w := range d.words {
 			tf[w] = map[*Document]float64{}
-			wtf := d.TF(w)
-
-			tf[w] = map[*Document]float64{}
-			tf[w][d] = wtf
+			tf[w][d] = d.TF(w)
 		}
 	}
 
@@ -80,6 +103,31 @@ func (c *Corpus) Words() []string {
 
 func (c *Corpus) Documents() []*Document {
 	return c.docs
+}
+
+type Score struct {
+	Word     string
+	Document string
+	Score    float64
+}
+
+func (s *Score) String() string {
+	return fmt.Sprintf("%v, %v, %v", s.Word, s.Document, s.Score)
+}
+
+// AsVector retuns the tf-idf score of each word for each document.
+func (c *Corpus) AsVector() []Score {
+	res := []Score{}
+
+	for w := range c.vocabolary {
+		for _, d := range c.docs {
+			score := Score{Word: w, Document: d.name, Score: c.tfidf[w][d]}
+
+			res = append(res, score)
+		}
+	}
+
+	return res
 }
 
 type Document struct {
