@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"math"
 	"strings"
+
+	sim "github.com/khaibin/go-cosinesimilarity"
+	"golang.org/x/exp/slices"
 )
 
 type Corpus struct {
@@ -63,21 +66,109 @@ func (c *Corpus) clone() *Corpus {
 	return cc
 }
 
+// VectorScore is the scores of corpus' word in a particular document.
+type VectorScore map[string][]Score
+
 // Transform returns the tf-idf vector of the query document.
-func (c *Corpus) Transform(query string) []Score {
+func (c *Corpus) Transform(query string) VectorScore {
 	qd := NewDocument("moogle_query", query)
 	cc := c.clone()
 	cc.FitTransform([]*Document{qd})
 
-	res := []Score{}
+	v := VectorScore{}
 	for _, s := range cc.AsVector() {
 		if s.Document == qd.name {
-			res = append(res, s)
+			v[s.Document] = append(v[s.Document], s)
+		}
+	}
+
+	return v
+}
+
+func (c *Corpus) Vectorize() VectorScore {
+	res := VectorScore{}
+
+	for _, s := range c.AsVector() {
+		res[s.Document] = append(res[s.Document], s)
+	}
+
+	return res
+}
+
+type rank struct {
+	document string
+	rank     float64
+}
+
+// RankDocs returns the list of documents similar to the query order by
+// similarities.
+func (c *Corpus) RankDocs(query VectorScore) []string {
+	vects := c.Vectorize()
+
+	drank := []rank{}
+
+	for _, d := range c.docs {
+		v := VectorScore{}
+		v[d.name] = vects[d.name]
+
+		rank := rank{document: d.name, rank: c.cosineSimilarities(v, query)}
+		drank = append(drank, rank)
+	}
+
+	slices.SortFunc[rank](drank, func(a, b rank) bool { return a.rank > b.rank })
+
+	res := []string{}
+	for _, r := range drank {
+		if r.rank > 0 {
+			res = append(res, r.document)
 		}
 	}
 
 	return res
 }
+
+// cosineSimilarities returns how simular both vectors are.
+func (c *Corpus) cosineSimilarities(a, b VectorScore) float64 {
+	xscores := []float64{}
+	for _, scores := range a {
+		for _, s := range scores {
+			xscores = append(xscores, s.Score)
+		}
+	}
+
+	x := [][]float64{xscores}
+
+	yscores := []float64{}
+	for _, scores := range b {
+		for _, s := range scores {
+			yscores = append(yscores, s.Score)
+		}
+	}
+
+	y := [][]float64{yscores}
+
+	res := sim.Compute(x, y)
+	fmt.Println(res)
+
+	return res[0][0]
+}
+
+// func RankDocs(c *Corpus, query []Score) []*Document {
+// 	wffidf := map[string][]Score{}
+
+// 	for _, s := range c.AsVector() {
+// 		wffidf[s.Document] = append(wffidf[s.Document], s)
+// 	}
+
+// 	qvec := [][]float64{}
+// 	for _, s := range query {
+// 		qvec = append(qvec, s.Score)
+// 	}
+
+// 	for doc, scs := range wffidf {
+// 		vec := [][]float64{}
+// 	}
+// }
 
 // Add adds a document to the library if it does not exist and returns true,
 // returns false if the document is already in the library.

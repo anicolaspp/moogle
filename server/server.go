@@ -58,12 +58,14 @@ func (m *Moogle) search() http.HandlerFunc {
 		query := r.URL.Query().Get("q")
 		fmt.Fprintf(w, "Query: %v\n", query)
 
-		v := m.corpus.Transform(query)
-		for _, s := range v {
-			fmt.Fprintf(w, "%v\n", s)
-		}
+		qvect := m.corpus.Transform(query)
 
-		// find similarities
+		fmt.Fprintf(w, "Results order by ranking...\n")
+
+		docs := m.corpus.RankDocs(qvect)
+		for _, d := range docs {
+			fmt.Fprintf(w, "Document: %v\n", d)
+		}
 	})
 }
 
