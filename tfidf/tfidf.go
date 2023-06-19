@@ -33,6 +33,23 @@ func NewCorpus() *Corpus {
 	}
 }
 
+// Add adds a document to the library if it does not exist and returns true,
+// returns false if the document is already in the library.
+func (c *Corpus) Add(d *Document) bool {
+	for _, doc := range c.docs {
+		if d.name == doc.name {
+			return false
+		}
+	}
+
+	c.docs = append(c.docs, d)
+	for w := range d.words {
+		c.vocabolary[w] = true
+	}
+
+	return true
+}
+
 // FitTransform learns the vocabulary and transforms the corpus into tfidf
 // scores based on the given documents.
 func (c *Corpus) FitTransform(docs []*Document) {
@@ -62,6 +79,48 @@ func (c *Corpus) Transform(query string) VectorScore {
 	}
 
 	return v
+}
+
+// RankDocs returns the list of documents similar to the query order by
+// similarities.
+func (c *Corpus) RankDocs(query VectorScore) []string {
+	vects := c.Vectorize()
+	drank := []rank{}
+
+	for _, d := range c.docs {
+		v := VectorScore{}
+		v[d.name] = vects[d.name]
+
+		rank := rank{document: d.name, rank: c.cosineSimilarities(v, query)}
+		drank = append(drank, rank)
+	}
+
+	slices.SortFunc[rank](drank, func(a, b rank) bool { return a.rank > b.rank })
+
+	res := []string{}
+	for _, r := range drank {
+		if r.rank > 0 {
+			res = append(res, r.document)
+		}
+	}
+
+	return res
+}
+
+// Words returns all the words in the Corpus. Basically all words in all
+// documents.
+func (c *Corpus) Words() []string {
+	ws := []string{}
+	for _, d := range c.docs {
+		ws = append(ws, d.raw...)
+	}
+
+	return ws
+}
+
+// Documents returns the set of the documents in the library.
+func (c *Corpus) Documents() []*Document {
+	return c.docs
 }
 
 // calculates the fi-idf of the corpus.
@@ -107,32 +166,6 @@ type rank struct {
 	rank     float64
 }
 
-// RankDocs returns the list of documents similar to the query order by
-// similarities.
-func (c *Corpus) RankDocs(query VectorScore) []string {
-	vects := c.Vectorize()
-	drank := []rank{}
-
-	for _, d := range c.docs {
-		v := VectorScore{}
-		v[d.name] = vects[d.name]
-
-		rank := rank{document: d.name, rank: c.cosineSimilarities(v, query)}
-		drank = append(drank, rank)
-	}
-
-	slices.SortFunc[rank](drank, func(a, b rank) bool { return a.rank > b.rank })
-
-	res := []string{}
-	for _, r := range drank {
-		if r.rank > 0 {
-			res = append(res, r.document)
-		}
-	}
-
-	return res
-}
-
 // cosineSimilarities returns how similar both vectors are.
 func (c *Corpus) cosineSimilarities(a, b VectorScore) float64 {
 	xscores := []float64{}
@@ -154,23 +187,6 @@ func (c *Corpus) cosineSimilarities(a, b VectorScore) float64 {
 	res := sim.Compute(x, y)
 
 	return res[0][0]
-}
-
-// Add adds a document to the library if it does not exist and returns true,
-// returns false if the document is already in the library.
-func (c *Corpus) Add(d *Document) bool {
-	for _, doc := range c.docs {
-		if d.name == doc.name {
-			return false
-		}
-	}
-
-	c.docs = append(c.docs, d)
-	for w := range d.words {
-		c.vocabolary[w] = true
-	}
-
-	return true
 }
 
 func (c *Corpus) calculateTF() map[string]map[*Document]float64 {
@@ -206,22 +222,6 @@ func (c *Corpus) calculateIDF() map[string]float64 {
 
 	c.idf = idf
 	return idf
-}
-
-// Words returns all the words in the Corpus. Basically all words in all
-// documents.
-func (c *Corpus) Words() []string {
-	ws := []string{}
-	for _, d := range c.docs {
-		ws = append(ws, d.raw...)
-	}
-
-	return ws
-}
-
-// Documents returns the set of the documents in the library.
-func (c *Corpus) Documents() []*Document {
-	return c.docs
 }
 
 // Score reprensets the TF-IDF score of a word-document pair.
