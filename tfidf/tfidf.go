@@ -28,19 +28,25 @@ func NewCorpus() *Corpus {
 }
 
 // FitTransform learns the vocabulary and transforms the corpus into tfidf
-// scores.
+// scores based on the given documents.
 func (c *Corpus) FitTransform(docs []*Document) {
+	// Fit the documents.
 	for _, d := range docs {
 		c.Add(d)
 	}
 
+	// calculate tf-idf.
+	c.transform()
+}
+
+func (c *Corpus) transform() {
 	c.TF()
 	c.IDF()
 
 	tfidf := map[string]map[*Document]float64{}
 
 	for w := range c.vocabolary {
-		for _, d := range docs {
+		for _, d := range c.docs {
 			tfidf[w] = map[*Document]float64{}
 			tfidf[w][d] = c.tf[w][d] * c.idf[w]
 		}
@@ -49,8 +55,28 @@ func (c *Corpus) FitTransform(docs []*Document) {
 	c.tfidf = tfidf
 }
 
-func (c *Corpus) Transform(query string) {
+func (c *Corpus) clone() *Corpus {
+	cc := NewCorpus()
+	cc.docs = c.docs
+	cc.vocabolary = c.vocabolary
 
+	return cc
+}
+
+// Transform returns the tf-idf vector of the query document.
+func (c *Corpus) Transform(query string) []Score {
+	qd := NewDocument("moogle_query", query)
+	cc := c.clone()
+	cc.FitTransform([]*Document{qd})
+
+	res := []Score{}
+	for _, s := range cc.AsVector() {
+		if s.Document == qd.name {
+			res = append(res, s)
+		}
+	}
+
+	return res
 }
 
 // Add adds a document to the library if it does not exist and returns true,

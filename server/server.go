@@ -58,12 +58,12 @@ func (m *Moogle) search() http.HandlerFunc {
 		query := r.URL.Query().Get("q")
 		fmt.Fprintf(w, "Query: %v\n", query)
 
-		q := tfidf.NewCorpus()
-		d := tfidf.NewDocument("q", query)
-		q.Add(d)
+		v := m.corpus.Transform(query)
+		for _, s := range v {
+			fmt.Fprintf(w, "%v\n", s)
+		}
 
-		fmt.Fprintf(w, "Query TF: %v, Query IDF: %v", q.TF(), q.IDF())
-
+		// find similarities
 	})
 }
 
