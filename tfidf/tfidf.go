@@ -10,6 +10,7 @@ import (
 	"golang.org/x/exp/slices"
 )
 
+// Corspus represents the entire library.
 type Corpus struct {
 	docs []*Document
 
@@ -23,6 +24,7 @@ type Corpus struct {
 	tfidf map[string]map[*Document]float64
 }
 
+// NewCorpus creates a new, empty Corpus.
 func NewCorpus() *Corpus {
 	return &Corpus{
 		docs:       []*Document{},
@@ -95,6 +97,8 @@ func (c *Corpus) Vectorize() VectorScore {
 	return res
 }
 
+// how a particular document ranks agains the other ones when compared to a
+// particular query.
 type rank struct {
 	document string
 	rank     float64
@@ -104,7 +108,6 @@ type rank struct {
 // similarities.
 func (c *Corpus) RankDocs(query VectorScore) []string {
 	vects := c.Vectorize()
-
 	drank := []rank{}
 
 	for _, d := range c.docs {
@@ -136,8 +139,6 @@ func (c *Corpus) cosineSimilarities(a, b VectorScore) float64 {
 		}
 	}
 
-	x := [][]float64{xscores}
-
 	yscores := []float64{}
 	for _, scores := range b {
 		for _, s := range scores {
@@ -146,9 +147,8 @@ func (c *Corpus) cosineSimilarities(a, b VectorScore) float64 {
 	}
 
 	y := [][]float64{yscores}
-
+	x := [][]float64{xscores}
 	res := sim.Compute(x, y)
-	fmt.Println(res)
 
 	return res[0][0]
 }
