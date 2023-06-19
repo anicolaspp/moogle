@@ -48,8 +48,7 @@ func (m *Moogle) Run() error {
 	fmt.Println("Loading documents index...")
 	wg.Wait()
 
-	// start serving RPC request here.
-
+	// start serving request here.
 	server := http.NewServeMux()
 	m.addHandlers(server)
 
@@ -63,10 +62,25 @@ func (m *Moogle) Run() error {
 func (m *Moogle) addHandlers(s *http.ServeMux) {
 	s.HandleFunc("/ls", m.listFilesHandler())
 	s.HandleFunc("/content", m.content())
+	s.HandleFunc("/search", m.search())
+}
+
+func (m *Moogle) search() http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		query := r.URL.Query().Get("q")
+		fmt.Fprintf(w, "Query: %v\n", query)
+
+		q := tfidf.NewCorpus()
+		d := tfidf.NewDocument("q", query)
+		q.Add(d)
+
+		fmt.Fprintf(w, "Query TF: %v, Query IDF: %v", q.TF(), q.IDF())
+
+	})
 }
 
 func (m *Moogle) listFilesHandler() http.HandlerFunc {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		for _, d := range m.corpus.Documents() {
 			fmt.Fprintln(w, d.String())
 		}

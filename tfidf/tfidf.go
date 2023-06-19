@@ -30,7 +30,7 @@ func (c *Corpus) Add(d *Document) {
 	}
 }
 
-func (c *Corpus) TF() {
+func (c *Corpus) TF() map[string]map[*Document]float64 {
 	tf := map[string]map[*Document]float64{} // Corpus TF.
 	for _, d := range c.docs {
 		for w := range d.words {
@@ -43,10 +43,10 @@ func (c *Corpus) TF() {
 	}
 
 	c.tf = tf
-	fmt.Println(tf)
+	return tf
 }
 
-func (c *Corpus) IDF() {
+func (c *Corpus) IDF() map[string]float64 {
 	df := map[string]int{} // number of documents containing each word.
 
 	for w := range c.vocabolary {
@@ -64,7 +64,7 @@ func (c *Corpus) IDF() {
 	}
 
 	c.idf = idf
-	fmt.Println(idf)
+	return idf
 }
 
 // Words returns all the words in the Corpus. Basically all words in all
