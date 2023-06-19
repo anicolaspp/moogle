@@ -49,11 +49,25 @@ func (c *Corpus) FitTransform(docs []*Document) {
 	c.tfidf = tfidf
 }
 
-func (c *Corpus) Add(d *Document) {
+func (c *Corpus) Transform(query string) {
+
+}
+
+// Add adds a document to the library if it does not exist and returns true,
+// returns false if the document is already in the library.
+func (c *Corpus) Add(d *Document) bool {
+	for _, doc := range c.docs {
+		if d.name == doc.name {
+			return false
+		}
+	}
+
 	c.docs = append(c.docs, d)
 	for w := range d.words {
 		c.vocabolary[w] = true
 	}
+
+	return true
 }
 
 func (c *Corpus) TF() map[string]map[*Document]float64 {
@@ -102,18 +116,21 @@ func (c *Corpus) Words() []string {
 	return ws
 }
 
+// Documents returns the set of the documents in the library.
 func (c *Corpus) Documents() []*Document {
 	return c.docs
 }
 
+// Score reprensets the TF-IDF score of a word-document pair.
 type Score struct {
 	Word     string
 	Document string
 	Score    float64
 }
 
+// String returns the string representation of `Score`.
 func (s *Score) String() string {
-	return fmt.Sprintf("%v, %v, %v", s.Word, s.Document, s.Score)
+	return fmt.Sprintf("word: %v, doc: %v, score: %v", s.Word, s.Document, s.Score)
 }
 
 // AsVector retuns the tf-idf score of each word for each document.
@@ -131,15 +148,15 @@ func (c *Corpus) AsVector() []Score {
 	return res
 }
 
+// Document represents a document in the library.
 type Document struct {
-	name string // name of the document.
-
-	raw   []string       // document words.
-	words map[string]int // set of unique words in the document.
-
-	idf map[string]float64 // the idf of the document's words.
+	name    string         // name of the document.
+	raw     []string       // document words.
+	content string         // oroginal content.
+	words   map[string]int // set of unique words in the document.
 }
 
+// NewDocument creates a `Document`.
 func NewDocument(name, content string) *Document {
 	words := words(content)
 
@@ -149,7 +166,7 @@ func NewDocument(name, content string) *Document {
 		uwords[w]++
 	}
 
-	return &Document{name: name, raw: words, words: uwords}
+	return &Document{name: name, raw: words, words: uwords, content: content}
 }
 
 // TF returns the tf value of the word in the document.
@@ -164,24 +181,21 @@ func (d *Document) TF(word string) float64 {
 	return 1
 }
 
+// Contains returns true if the word is in the document, otherwise false.
 func (d *Document) Contains(word string) bool {
 	_, ok := d.words[word]
 
 	return ok
 }
 
-func (d *Document) IDF(idf map[string]float64) {
-	didf := map[string]float64{}
-
-	for w := range d.words {
-		didf[w] = idf[w]
-	}
-
-	d.idf = didf
+// String returns the document name.
+func (d *Document) String() string {
+	return d.name
 }
 
-func (d *Document) String() string {
-	return fmt.Sprint(d.name)
+// Content returns the original content of the `Document`.
+func (d *Document) Content() string {
+	return d.content
 }
 
 // words extracts all the words of the given document.
