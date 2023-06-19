@@ -44,6 +44,7 @@ func (c *Corpus) FitTransform(docs []*Document) {
 	c.transform()
 }
 
+// calculates the fi-idf of the corpus.
 func (c *Corpus) transform() {
 	c.TF()
 	c.IDF()
@@ -60,6 +61,7 @@ func (c *Corpus) transform() {
 	c.tfidf = tfidf
 }
 
+// clones the corpus without modifying it.
 func (c *Corpus) clone() *Corpus {
 	cc := NewCorpus()
 	cc.docs = c.docs
