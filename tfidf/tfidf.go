@@ -10,7 +10,8 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-// Corspus represents the entire library.
+// Corspus represents the entire library and the corresponding transformations
+// we can apply to it.
 type Corpus struct {
 	docs []*Document
 
