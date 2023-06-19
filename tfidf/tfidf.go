@@ -46,8 +46,8 @@ func (c *Corpus) FitTransform(docs []*Document) {
 
 // calculates the fi-idf of the corpus.
 func (c *Corpus) transform() {
-	c.TF()
-	c.IDF()
+	c.calculateTF()
+	c.calculateIDF()
 
 	tfidf := map[string]map[*Document]float64{}
 
@@ -172,7 +172,7 @@ func (c *Corpus) Add(d *Document) bool {
 	return true
 }
 
-func (c *Corpus) TF() map[string]map[*Document]float64 {
+func (c *Corpus) calculateTF() map[string]map[*Document]float64 {
 	tf := map[string]map[*Document]float64{} // Corpus TF.
 
 	for _, d := range c.docs {
@@ -186,7 +186,7 @@ func (c *Corpus) TF() map[string]map[*Document]float64 {
 	return tf
 }
 
-func (c *Corpus) IDF() map[string]float64 {
+func (c *Corpus) calculateIDF() map[string]float64 {
 	df := map[string]int{} // number of documents containing each word.
 
 	for w := range c.vocabolary {
