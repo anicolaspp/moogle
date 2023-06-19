@@ -39,12 +39,11 @@ func (c *Corpus) TF() {
 
 			tf[w] = map[*Document]float64{}
 			tf[w][d] = wtf
-
-			fmt.Printf("w: %v, d: %v, tf: %v\n", w, d.name, wtf)
 		}
 	}
 
 	c.tf = tf
+	fmt.Println(tf)
 }
 
 func (c *Corpus) IDF() {
@@ -65,6 +64,7 @@ func (c *Corpus) IDF() {
 	}
 
 	c.idf = idf
+	fmt.Println(idf)
 }
 
 // Words returns all the words in the Corpus. Basically all words in all
@@ -83,6 +83,8 @@ type Document struct {
 
 	raw   []string       // document words.
 	words map[string]int // set of unique words in the document.
+
+	idf map[string]float64 // the idf of the document's words.
 }
 
 func NewDocument(name, content string) *Document {
@@ -113,6 +115,20 @@ func (d *Document) Contains(word string) bool {
 	_, ok := d.words[word]
 
 	return ok
+}
+
+func (d *Document) IDF(idf map[string]float64) {
+	didf := map[string]float64{}
+
+	for w := range d.words {
+		didf[w] = idf[w]
+	}
+
+	d.idf = didf
+}
+
+func (d *Document) String() string {
+	return fmt.Sprint(d.name)
 }
 
 // words extracts all the words of the given document.

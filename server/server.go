@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	serverContentDif = "/content"
+	serverContentDif = "/library"
 )
 
 type Moogle struct {
@@ -33,6 +33,7 @@ func (m *Moogle) Run() error {
 	}
 
 	corpus.TF()
+	corpus.IDF()
 
 	// start serving RPC request here.
 
