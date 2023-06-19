@@ -4,6 +4,7 @@ package tfidf
 import (
 	"fmt"
 	"math"
+	"regexp"
 	"strings"
 
 	sim "github.com/khaibin/go-cosinesimilarity"
@@ -200,8 +201,8 @@ func (c *Corpus) cosineSimilarities(a, b VectorScore) float64 {
 		}
 	}
 
-	y := [][]float64{yscores}
 	x := [][]float64{xscores}
+	y := [][]float64{yscores}
 	res := sim.Compute(x, y)
 
 	return res[0][0]
@@ -234,7 +235,7 @@ func (c *Corpus) calculateIDF() map[string]float64 {
 	idf := map[string]float64{}
 
 	for w := range c.vocabolary {
-		idf[w] = math.Log10(float64(len(c.docs) / df[w]))
+		idf[w] = math.Log10(float64((len(c.docs) + 1) / df[w]))
 	}
 
 	return idf
@@ -258,7 +259,8 @@ func (c *Corpus) AsVector() []Score {
 
 	for w := range c.vocabolary {
 		for _, d := range c.docs {
-			score := Score{Word: w, Document: d.name, Score: c.tfidf[w][d]}
+			fscore := c.tfidf[w][d]
+			score := Score{Word: w, Document: d.name, Score: fscore}
 
 			res = append(res, score)
 		}
@@ -318,16 +320,14 @@ func (d *Document) Content() string {
 	return d.content
 }
 
+var nonAlphanumericRegex = regexp.MustCompile(`[^a-zA-Z0-9 ]+`)
+
 // words extracts all the words of the given document.
 func words(document string) []string {
-	symbols := "!\"#$%&()*+-./:;<=>?@[]^_`{|}~\n"
+	// symbols := "!\"#$%&()*+-./:;<=>?@[]^_`{|}~\n"
 
 	pieces := strings.ToLower(document)
-	for s := range symbols {
-		pieces = strings.ReplaceAll(pieces, string(rune(s)), " ")
-	}
-
-	pieces = strings.ReplaceAll(pieces, "'", " ")
+	pieces = nonAlphanumericRegex.ReplaceAllString(pieces, " ")
 
 	return strings.Split(pieces, " ")
 }
