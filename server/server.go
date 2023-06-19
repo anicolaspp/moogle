@@ -17,6 +17,7 @@ type Moogle struct {
 	corpus *tfidf.Corpus
 }
 
+// Run starts serving request.
 func (m *Moogle) Run() error {
 	contents, err := libraryContent()
 	if err != nil {
