@@ -45,6 +45,25 @@ func (c *Corpus) FitTransform(docs []*Document) {
 	c.transform()
 }
 
+// VectorScore is the scores of corpus' word in a particular document.
+type VectorScore map[string][]Score
+
+// Transform returns the tf-idf vector of the query document.
+func (c *Corpus) Transform(query string) VectorScore {
+	qd := NewDocument("moogle_query", query)
+	cc := c.clone()
+	cc.FitTransform([]*Document{qd})
+
+	v := VectorScore{}
+	for _, s := range cc.AsVector() {
+		if s.Document == qd.name {
+			v[s.Document] = append(v[s.Document], s)
+		}
+	}
+
+	return v
+}
+
 // calculates the fi-idf of the corpus.
 func (c *Corpus) transform() {
 	c.calculateTF()
@@ -69,25 +88,6 @@ func (c *Corpus) clone() *Corpus {
 	cc.vocabolary = c.vocabolary
 
 	return cc
-}
-
-// VectorScore is the scores of corpus' word in a particular document.
-type VectorScore map[string][]Score
-
-// Transform returns the tf-idf vector of the query document.
-func (c *Corpus) Transform(query string) VectorScore {
-	qd := NewDocument("moogle_query", query)
-	cc := c.clone()
-	cc.FitTransform([]*Document{qd})
-
-	v := VectorScore{}
-	for _, s := range cc.AsVector() {
-		if s.Document == qd.name {
-			v[s.Document] = append(v[s.Document], s)
-		}
-	}
-
-	return v
 }
 
 func (c *Corpus) Vectorize() VectorScore {
