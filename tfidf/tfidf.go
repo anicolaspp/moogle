@@ -76,7 +76,7 @@ func (c *Corpus) FitTransform(docs []*Document) {
 	}
 
 	// calculate tf-idf.
-	c.transform()
+	c.Transform()
 }
 
 // VectorScore is the scores of corpus' word in a particular document.
