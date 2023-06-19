@@ -10,17 +10,16 @@ import (
 	"golang.org/x/exp/slices"
 )
 
+type wordSet map[string]bool
+
 // Corspus represents the entire library and the corresponding transformations
 // we can apply to it.
 type Corpus struct {
 	docs []*Document
 
-	vocabolary map[string]bool
+	// unique set of words in the corpus.
+	vocabolary wordSet
 
-	// Term Frequency of each word on each document.
-	tf map[string]map[*Document]float64
-	// Inverse Document Frequency. Proportion of documents containing each word.
-	idf map[string]float64
 	// TF_IDF scores of each word on each document.
 	tfidf map[string]map[*Document]float64
 }
@@ -29,7 +28,7 @@ type Corpus struct {
 func NewCorpus() *Corpus {
 	return &Corpus{
 		docs:       []*Document{},
-		vocabolary: map[string]bool{},
+		vocabolary: wordSet{},
 	}
 }
 
@@ -125,15 +124,15 @@ func (c *Corpus) Documents() []*Document {
 
 // calculates the fi-idf of the corpus.
 func (c *Corpus) transform() {
-	c.calculateTF()
-	c.calculateIDF()
+	tf := c.calculateTF()
+	idf := c.calculateIDF()
 
 	tfidf := map[string]map[*Document]float64{}
 
 	for w := range c.vocabolary {
 		for _, d := range c.docs {
 			tfidf[w] = map[*Document]float64{}
-			tfidf[w][d] = c.tf[w][d] * c.idf[w]
+			tfidf[w][d] = tf[w][d] * idf[w]
 		}
 	}
 
@@ -199,7 +198,6 @@ func (c *Corpus) calculateTF() map[string]map[*Document]float64 {
 		}
 	}
 
-	c.tf = tf
 	return tf
 }
 
@@ -220,7 +218,6 @@ func (c *Corpus) calculateIDF() map[string]float64 {
 		idf[w] = math.Log10(float64(len(c.docs) / df[w]))
 	}
 
-	c.idf = idf
 	return idf
 }
 
