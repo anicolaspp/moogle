@@ -250,10 +250,11 @@ func (c *Corpus) AsVector() []Score {
 
 // Document represents a document in the library.
 type Document struct {
-	name    string         // name of the document.
-	raw     []string       // document words.
-	content string         // oroginal content.
-	words   map[string]int // set of unique words in the document.
+	name    string   // name of the document.
+	raw     []string // document words.
+	content string   // oroginal content.
+	// set of unique words in the document with their corresponding frequency.
+	words map[string]int
 }
 
 // NewDocument creates a `Document`.
