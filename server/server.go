@@ -55,7 +55,7 @@ func (m *Moogle) search() http.HandlerFunc {
 		query := r.URL.Query().Get("q")
 		fmt.Fprintf(w, "Query: %v\n", query)
 
-		qvect := m.corpus.Transform(query)
+		qvect := tfidf.Transform(m.corpus, query)
 
 		fmt.Fprintf(w, "Results order by ranking...\n")
 

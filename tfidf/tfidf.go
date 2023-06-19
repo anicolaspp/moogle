@@ -59,8 +59,16 @@ func (c *Corpus) Add(d *Document) bool {
 	return true
 }
 
+// Transform calculate the tf-idf in the corpus.
+func (c *Corpus) Transform() {
+	c.transform()
+}
+
 // FitTransform learns the vocabulary and transforms the corpus into tfidf
 // scores based on the given documents.
+//
+// This is the same as adding each doc using
+// corpus.Add then calling corpus.Transform().
 func (c *Corpus) FitTransform(docs []*Document) {
 	// Fit the documents.
 	for _, d := range docs {
@@ -73,22 +81,6 @@ func (c *Corpus) FitTransform(docs []*Document) {
 
 // VectorScore is the scores of corpus' word in a particular document.
 type VectorScore map[string][]Score
-
-// Transform returns the tf-idf vector of the query document.
-func (c *Corpus) Transform(query string) VectorScore {
-	qd := NewDocument("moogle_query", query)
-	cc := c.clone()
-	cc.FitTransform([]*Document{qd})
-
-	v := VectorScore{}
-	for _, s := range cc.AsVector() {
-		if s.Document == qd.name {
-			v[s.Document] = append(v[s.Document], s)
-		}
-	}
-
-	return v
-}
 
 // RankDocs returns the list of documents similar to the query order by
 // similarities.
@@ -104,11 +96,12 @@ func (c *Corpus) RankDocs(query VectorScore) []string {
 		drank = append(drank, rank)
 	}
 
+	// order the docs based on their similaries to the query.
 	slices.SortFunc[rank](drank, func(a, b rank) bool { return a.rank > b.rank })
 
 	res := []string{}
 	for _, r := range drank {
-		if r.rank > 0 {
+		if r.rank > 0 { // remove docs that are completely different.
 			res = append(res, r.document)
 		}
 	}
@@ -130,6 +123,22 @@ func (c *Corpus) Words() []string {
 // Documents returns the set of the documents in the library.
 func (c *Corpus) Documents() []*Document {
 	return c.docs
+}
+
+// Transform returns the tf-idf vector of the query document.
+func Transform(corpus *Corpus, query string) VectorScore {
+	qd := NewDocument("moogle_query", query)
+	cc := corpus.clone()
+	cc.FitTransform([]*Document{qd})
+
+	v := VectorScore{}
+	for _, s := range cc.AsVector() {
+		if s.Document == qd.name {
+			v[s.Document] = append(v[s.Document], s)
+		}
+	}
+
+	return v
 }
 
 // calculates the fi-idf of the corpus.
