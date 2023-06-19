@@ -32,10 +32,6 @@ func (m *Moogle) Run() error {
 
 	m.corpus.FitTransform(docs)
 
-	for _, s := range m.corpus.AsVector() {
-		fmt.Println(s)
-	}
-
 	// start serving request here.
 	server := http.NewServeMux()
 	m.addHandlers(server)
