@@ -153,23 +153,6 @@ func (c *Corpus) cosineSimilarities(a, b VectorScore) float64 {
 	return res[0][0]
 }
 
-// func RankDocs(c *Corpus, query []Score) []*Document {
-// 	wffidf := map[string][]Score{}
-
-// 	for _, s := range c.AsVector() {
-// 		wffidf[s.Document] = append(wffidf[s.Document], s)
-// 	}
-
-// 	qvec := [][]float64{}
-// 	for _, s := range query {
-// 		qvec = append(qvec, s.Score)
-// 	}
-
-// 	for doc, scs := range wffidf {
-// 		vec := [][]float64{}
-// 	}
-// }
-
 // Add adds a document to the library if it does not exist and returns true,
 // returns false if the document is already in the library.
 func (c *Corpus) Add(d *Document) bool {
