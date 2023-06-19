@@ -58,8 +58,9 @@ func (c *Corpus) Add(d *Document) {
 
 func (c *Corpus) TF() map[string]map[*Document]float64 {
 	tf := map[string]map[*Document]float64{} // Corpus TF.
+
 	for _, d := range c.docs {
-		for w := range d.words {
+		for w := range c.vocabolary {
 			tf[w] = map[*Document]float64{}
 			tf[w][d] = d.TF(w)
 		}
@@ -160,7 +161,7 @@ func (d *Document) TF(word string) float64 {
 		return float64(count) / float64(len(d.raw))
 	}
 
-	return 0
+	return 1
 }
 
 func (d *Document) Contains(word string) bool {
