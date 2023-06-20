@@ -15,12 +15,11 @@ type wordSet map[string]bool
 
 func (ws wordSet) add(w string) bool {
 	_, ok := ws[w]
-	if ok {
-		return false
+	if !ok {
+		ws[w] = true
 	}
 
-	ws[w] = true
-	return true
+	return !ok
 }
 
 // Corspus represents the entire library and the corresponding transformations
